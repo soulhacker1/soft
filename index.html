@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111411" />
+    <meta name="description" content="Explore Visa, Mastercard, American Express, and UnionPay card designs alongside a live transaction feed." />
+    <title>Soft / Swipe - Card Collection</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #f0f2e9;
+        background: #111411;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        --canvas: #111411;
+        --ink: #f0f2e9;
+        --muted: #92988e;
+        --line: rgba(220, 230, 207, 0.12);
+        --lime: #c9f27c;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+      html { min-width: 320px; scroll-behavior: smooth; scroll-padding-top: 24px; }
+      body { min-width: 320px; margin: 0; background: var(--canvas); }
+      body::before {
+        position: fixed; z-index: -1; inset: 0; content: "";
+        background: radial-gradient(ellipse at 80% 4%, rgba(64, 91, 55, .18), transparent 38%),
+          radial-gradient(ellipse at 8% 44%, rgba(39, 66, 56, .11), transparent 34%),
+          linear-gradient(180deg, #121612 0%, #111411 58%, #131713 100%);
+      }
+      ::selection { color: #10140d; background: var(--lime); }
+      a { color: inherit; text-decoration: none; }
+      button { font: inherit; }
+      button:focus-visible, a:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+      .app-shell { position: relative; min-height: 100vh; overflow: hidden; }
+
+      .site-header {
+        position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr 1fr;
+        align-items: center; width: min(100%, 1600px); height: 78px; margin: 0 auto;
+        padding: 0 clamp(24px, 5.2vw, 82px); border-bottom: 1px solid var(--line);
+      }
+      .brand-lockup {
+        display: inline-flex; align-items: center; justify-self: start; gap: 10px;
+        font-size: 12px; font-weight: 760; letter-spacing: .11em; white-space: nowrap;
+      }
+      .brand-symbol {
+        position: relative; display: inline-flex; align-items: center; justify-content: center;
+        width: 25px; height: 25px; overflow: hidden; border: 1px solid rgba(201, 242, 124, .6);
+        border-radius: 50%; background: rgba(201, 242, 124, .08);
+      }
+      .brand-symbol i { display: block; width: 3px; height: 12px; margin: 0 1px; border-radius: 4px; background: var(--lime); transform: rotate(36deg); }
+      .brand-symbol i + i { height: 8px; opacity: .55; transform: rotate(36deg) translateY(1px); }
+      .brand-slash { padding: 0 2px; color: var(--lime); }
+      .header-link, .header-note {
+        display: inline-flex; align-items: center; gap: 9px; font-size: 9px; font-weight: 650;
+        letter-spacing: .14em; white-space: nowrap;
+      }
+      .header-link { justify-self: center; color: #c1c7bb; transition: color 180ms ease; }
+      .header-link:hover, .back-to-top:hover { color: var(--lime); }
+      .header-link svg, .back-to-top svg { width: 15px; height: 15px; transition: transform 180ms ease; }
+      .header-link:hover svg, .back-to-top:hover svg { transform: translateX(3px); }
+      .header-note { justify-self: end; color: #a3a99d; }
+      .header-note > span, .hero-kicker > span {
+        width: 6px; height: 6px; border-radius: 50%; background: var(--lime);
+        box-shadow: 0 0 14px rgba(201, 242, 124, .52);
+      }
+
+      .hero {
+        position: relative; display: flex; flex-direction: column; justify-content: center;
+        width: min(100%, 1600px); min-height: 474px; margin: 0 auto;
+        padding: 79px clamp(24px, 8.1vw, 130px) 71px; isolation: isolate;
+      }
+      .hero-orb { position: absolute; z-index: -1; pointer-events: none; }
+      .hero-orb--large {
+        top: 56px; right: 12%; width: clamp(220px, 33vw, 430px); aspect-ratio: 1;
+        border: 1px solid rgba(201, 242, 124, .07); border-radius: 50%;
+        background: radial-gradient(circle at 48% 46%, rgba(161, 209, 101, .1), rgba(46, 67, 42, .035) 48%, transparent 69%),
+          repeating-radial-gradient(circle at 50% 50%, transparent 0 38px, rgba(201, 242, 124, .025) 39px 40px);
+        animation: slow-orbit 32s linear infinite;
+      }
+      .hero-orb--small {
+        top: 105px; right: calc(12% + 335px); width: 8px; height: 8px; border-radius: 50%;
+        background: var(--lime); box-shadow: 0 0 22px rgba(201, 242, 124, .6);
+        animation: glimmer 2.8s ease-in-out infinite alternate;
+      }
+      .hero-kicker {
+        display: flex; align-items: center; gap: 10px; margin: 0 0 27px 5px;
+        color: #adb3a5; font-size: 9px; font-weight: 600; letter-spacing: .19em;
+        animation: rise-in 650ms 50ms both;
+      }
+      .hero-kicker > span { width: 5px; height: 5px; }
+      .hero-title {
+        position: relative; display: flex; align-items: baseline; width: fit-content; max-width: 100%;
+        margin: 0; color: #f2f3e9; font-size: clamp(78px, 13.25vw, 184px); font-weight: 610;
+        letter-spacing: -.105em; line-height: .79; white-space: nowrap; animation: rise-in 760ms 100ms both;
+      }
+      .hero-title__slash { padding: 0 .065em 0 .09em; color: var(--lime); font-weight: 400; }
+      .hero-bottom {
+        display: flex; align-items: center; justify-content: space-between; width: min(100%, 755px);
+        margin-top: 39px; padding-left: 5px; animation: rise-in 760ms 200ms both;
+      }
+      .hero-bottom p { max-width: 430px; margin: 0; color: #aab0a4; font-size: 14px; line-height: 1.75; }
+      .hero-cta {
+        display: inline-flex; align-items: center; gap: 12px; padding: 12px 0; color: var(--lime);
+        font-size: 11px; font-weight: 670; letter-spacing: .04em; white-space: nowrap;
+      }
+      .hero-cta svg { width: 19px; height: 19px; transition: transform 200ms ease; }
+      .hero-cta:hover svg { transform: translateX(5px); }
+      .hero-index {
+        position: absolute; right: clamp(24px, 5.2vw, 82px); bottom: 29px; color: #677066;
+        font-size: 8px; font-weight: 600; letter-spacing: .16em;
+      }
+
+      .gallery { width: min(100%, 1600px); margin: 0 auto; padding: 0 clamp(24px, 5.2vw, 82px); }
+      .network-nav {
+        display: flex; align-items: center; gap: clamp(18px, 3.4vw, 53px); min-height: 68px;
+        overflow-x: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); scrollbar-width: none;
+      }
+      .network-nav::-webkit-scrollbar { display: none; }
+      .network-nav__label { flex: 0 0 auto; color: #777f73; font-size: 8px; font-weight: 650; letter-spacing: .15em; }
+      .network-nav a { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; color: #b9c0b3; font-size: 10px; transition: color 160ms ease; }
+      .network-nav a > span { color: #6c7569; font-size: 8px; }
+      .network-nav a:hover { color: var(--lime); }
+      .network-section { padding: 85px 0 91px; border-bottom: 1px solid var(--line); scroll-margin-top: 28px; }
+      .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; margin-bottom: 31px; }
+      .section-index { color: #9ca393; font-size: 8px; font-weight: 620; letter-spacing: .16em; }
+      .section-heading h2 { margin: 11px 0 5px; color: var(--ink); font-size: clamp(34px, 4vw, 47px); font-weight: 520; letter-spacing: -.065em; line-height: 1.08; }
+      .section-heading p { margin: 0; color: #969d91; font-size: 12px; line-height: 1.55; }
+      .section-count { display: flex; flex: 0 0 auto; align-items: baseline; gap: 8px; margin-bottom: 5px; color: #9ca393; font-size: 10px; }
+      .section-count strong { color: var(--lime); font-size: 19px; font-weight: 450; letter-spacing: -.05em; }
+      .card-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 27px 19px; }
+      .sample-item { min-width: 0; }
+      .payment-card {
+        display: block; width: 100%; aspect-ratio: 1.585; padding: 0; overflow: visible; border: 0;
+        border-radius: 15px; background: transparent; color: #f6f5eb; cursor: pointer; perspective: 1000px;
+        text-align: left; transition: transform 230ms ease, filter 230ms ease; -webkit-tap-highlight-color: transparent;
+      }
+      .payment-card:not(.is-flipped):hover { z-index: 1; filter: brightness(1.08); transform: translateY(-4px) rotateX(1deg); }
+      .payment-card:focus-visible { outline-offset: 5px; }
+      .payment-card__inner {
+        position: relative; display: block; width: 100%; height: 100%; border-radius: 15px;
+        transform-style: preserve-3d; transition: transform 680ms cubic-bezier(.18, .78, .2, 1);
+      }
+      .payment-card.is-flipped .payment-card__inner { transform: rotateY(180deg); }
+      .payment-card__face {
+        position: absolute; inset: 0; display: block; overflow: hidden; border: 1px solid rgba(255, 255, 255, .19);
+        border-radius: 15px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11), 0 10px 26px rgba(0, 0, 0, .16);
+        -webkit-backface-visibility: hidden; backface-visibility: hidden;
+      }
+      .payment-card__front { background: linear-gradient(135deg, #114a42 0%, #12675a 48%, #347b67 100%); }
+      .payment-card--mastercard .payment-card__front { background: radial-gradient(ellipse at 100% 120%, rgba(238, 140, 66, .35), transparent 52%), linear-gradient(135deg, #29252b 0%, #343231 56%, #625143 100%); }
+      .payment-card--amex .payment-card__front { background: radial-gradient(ellipse at 100% -3%, rgba(116, 196, 229, .39), transparent 45%), linear-gradient(140deg, #17617e 0%, #1b4770 58%, #273c66 100%); }
+      .payment-card--unionpay .payment-card__front { background: radial-gradient(ellipse at -6% 112%, rgba(227, 76, 67, .42), transparent 53%), linear-gradient(135deg, #26384c 0%, #235468 51%, #4d5965 100%); }
+      .payment-card[data-variant="1"] .payment-card__front { filter: saturate(.86) brightness(1.1); }
+      .payment-card--mastercard[data-variant="1"] .payment-card__front { background: radial-gradient(ellipse at 0% 100%, rgba(199, 111, 66, .33), transparent 49%), linear-gradient(135deg, #382b27 0%, #4c4437 55%, #715c40 100%); }
+      .payment-card--amex[data-variant="1"] .payment-card__front { background: radial-gradient(ellipse at 100% 10%, rgba(145, 211, 236, .36), transparent 48%), linear-gradient(145deg, #1f6f87, #25466e 66%, #303b63); }
+      .payment-card--unionpay[data-variant="1"] .payment-card__front { background: radial-gradient(ellipse at 94% 115%, rgba(224, 69, 78, .38), transparent 50%), linear-gradient(145deg, #283d62, #2f5369 60%, #586270); }
+      .payment-card[data-variant="2"] .payment-card__front { filter: hue-rotate(9deg) brightness(.95); }
+      .payment-card__front::after {
+        position: absolute; right: -26%; bottom: -83%; width: 88%; aspect-ratio: 1; border: 1px solid rgba(240, 245, 222, .14);
+        border-radius: 50%; box-shadow: 0 0 0 18px rgba(240, 245, 222, .025), 0 0 0 42px rgba(240, 245, 222, .025); content: "";
+      }
+      .card-orbit { position: absolute; z-index: 0; border: 1px solid rgba(239, 245, 225, .12); border-radius: 50%; pointer-events: none; }
+      .card-orbit--one { top: -44%; right: 9%; width: 39%; aspect-ratio: 1; }
+      .card-orbit--two { top: -24%; right: -4%; width: 39%; aspect-ratio: 1; opacity: .58; }
+      .payment-card[data-variant="1"] .card-orbit--one { right: 26%; width: 30%; }
+      .payment-card[data-variant="2"] .card-orbit--two { top: -42%; right: 14%; }
+      .card-face-top, .card-chip-row, .card-face-bottom {
+        position: absolute; z-index: 1; right: 0; left: 0; display: flex; align-items: center;
+        justify-content: space-between; padding: 0 clamp(13px, 1.5vw, 20px);
+      }
+      .card-face-top { top: 12%; }
+      .card-serial { color: rgba(245, 249, 236, .73); font-size: clamp(6px, .62vw, 8px); font-weight: 590; letter-spacing: .13em; white-space: nowrap; }
+      .network-logo { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; color: #fff; line-height: 1; }
+      .network-logo--visa { font-size: clamp(17px, 2vw, 24px); font-style: italic; font-weight: 850; letter-spacing: -.08em; }
+      .network-logo--mastercard { gap: 5px; font-size: clamp(6px, .65vw, 8px); font-weight: 640; letter-spacing: -.04em; }
+      .mastercard-mark { position: relative; display: inline-flex; width: 31px; height: 19px; align-items: center; }
+      .mastercard-mark i { position: absolute; width: 19px; height: 19px; border-radius: 50%; background: #ef6951; }
+      .mastercard-mark i + i { right: 0; background: #f4af48; mix-blend-mode: screen; }
+      .network-logo--amex { align-items: center; padding: 4px 5px 3px; border: 1px solid rgba(255, 255, 255, .76); font-size: clamp(5px, .56vw, 7px); font-weight: 800; letter-spacing: .055em; line-height: 1.15; }
+      .network-logo--amex span { display: block; }
+      .network-logo--unionpay { gap: 4px; font-size: clamp(7px, .75vw, 9px); font-weight: 760; letter-spacing: -.055em; }
+      .unionpay-mark { display: flex; gap: 1px; height: 14px; }
+      .unionpay-mark i { display: block; width: 4px; border-radius: 3px; background: #ed6663; transform: skew(-13deg); }
+      .unionpay-mark i:nth-child(2) { height: 11px; margin-top: 3px; background: #e3b75c; }
+      .unionpay-mark i:nth-child(3) { height: 9px; margin-top: 5px; background: #96bfd2; }
+      .card-chip-row { top: 43%; justify-content: flex-start; gap: 9px; }
+      .card-chip { width: clamp(27px, 3vw, 39px); height: auto; opacity: .94; }
+      .contactless-icon { width: 18px; height: 18px; color: rgba(244, 248, 231, .85); transform: rotate(90deg); }
+      .card-face-bottom { bottom: 12%; }
+      .card-front-brand, .card-front-edition { color: rgba(243, 248, 231, .79); font-size: clamp(6px, .59vw, 8px); font-weight: 590; letter-spacing: .13em; }
+      .card-front-edition { color: rgba(243, 248, 231, .6); font-size: clamp(5px, .48vw, 7px); letter-spacing: .1em; }
+      .payment-card__back {
+        display: flex; flex-direction: column; justify-content: space-between; padding: 10% 0 8%;
+        background: linear-gradient(140deg, #27332c, #18201b 62%, #30372e); transform: rotateY(180deg);
+      }
+      .payment-card--mastercard .payment-card__back { background: linear-gradient(140deg, #39342e, #201f20 62%, #473a31); }
+      .payment-card--amex .payment-card__back { background: linear-gradient(140deg, #214d6e, #18344e 62%, #293b5b); }
+      .payment-card--unionpay .payment-card__back { background: linear-gradient(140deg, #304a60, #1d384a 62%, #4d4350); }
+      .card-back-top, .card-back-bottom { display: block; padding: 0 7%; color: rgba(247, 247, 235, .78); font-size: clamp(6px, .62vw, 8px); font-weight: 620; letter-spacing: .12em; }
+      .card-magnetic-stripe { display: block; width: 100%; height: 18%; background: rgba(11, 15, 13, .78); }
+      .card-signature-row { display: flex; align-items: center; justify-content: space-between; width: 87%; min-height: 19%; margin-left: 7%; padding: 0 8px; background: rgba(226, 227, 210, .85); color: #343a31; }
+      .card-signature { font-size: clamp(5px, .52vw, 7px); font-weight: 750; letter-spacing: .1em; }
+      .card-signature-tag { color: #5d6658; font-size: 7px; font-weight: 750; }
+      .card-back-bottom { color: rgba(247, 247, 235, .57); font-size: clamp(5px, .49vw, 7px); }
+      .sample-caption { padding: 11px 1px 0; }
+      .sample-caption__top, .sample-payment { display: flex; align-items: center; justify-content: space-between; }
+      .sample-caption__top { min-height: 21px; }
+      .tap-label { display: inline-flex; align-items: center; gap: 5px; color: #b8c0b2; font-size: 9px; font-weight: 560; letter-spacing: .035em; }
+      .tap-label svg { width: 14px; height: 14px; color: var(--lime); }
+      .sample-number { color: #747e71; font-size: 7px; font-weight: 570; letter-spacing: .12em; }
+      .sample-payment { gap: 5px; margin-top: 7px; padding-top: 8px; border-top: 1px solid rgba(220, 230, 207, .11); }
+      .sample-payment > span { color: #858d80; font-size: 8px; white-space: nowrap; }
+      .sample-payment strong { color: #e6e9dd; font-size: clamp(12px, 1.2vw, 15px); font-weight: 540; letter-spacing: -.045em; white-space: nowrap; }
+
+      .site-footer {
+        display: flex; align-items: center; justify-content: space-between; gap: 26px; width: min(100%, 1600px);
+        min-height: 116px; margin: 0 auto; padding: 24px clamp(24px, 5.2vw, 82px) 128px;
+      }
+      .brand-lockup--footer { flex: 0 0 auto; color: #dce1d4; font-size: 9px; }
+      .brand-lockup--footer .brand-symbol { width: 21px; height: 21px; }
+      .brand-lockup--footer .brand-symbol i { height: 10px; }
+      .site-footer p { max-width: 410px; margin: 0; color: #788075; font-size: 9px; line-height: 1.6; text-align: center; }
+      .back-to-top { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; color: #a8afa1; font-size: 8px; font-weight: 600; letter-spacing: .12em; transition: color 180ms ease; }
+
+      .live-panel {
+        position: fixed; z-index: 10; top: 50%; right: 24px; display: flex;
+        width: min(2.1in, calc(100vw - 48px)); height: min(4in, calc(100svh - 24px));
+        flex-direction: column; overflow: hidden; border: 1px solid rgba(201, 242, 124, .24);
+        border-radius: 14px; background: rgba(20, 25, 21, .95);
+        box-shadow: 0 17px 55px rgba(0, 0, 0, .39), 0 0 28px rgba(125, 174, 82, .06);
+        backdrop-filter: blur(20px); transform: translateY(-50%); animation: panel-arrive 540ms 350ms both;
+      }
+      .live-panel__heading { display: flex; align-items: center; min-height: 42px; gap: 7px; padding: 0 10px; border-bottom: 1px solid rgba(220, 230, 207, .1); }
+      .live-indicator { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--lime); box-shadow: 0 0 11px rgba(201, 242, 124, .74); animation: live-pulse 1.8s ease-in-out infinite; }
+      .live-panel__title { color: #e4e9dc; font-size: 9px; font-weight: 710; letter-spacing: .08em; white-space: nowrap; }
+      .live-panel__tag { margin-left: auto; color: #778172; font-size: 7px; font-weight: 650; letter-spacing: .1em; }
+      .live-panel__toggle { display: grid; width: 24px; height: 26px; margin-left: 1px; padding: 0; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #a3ad9c; cursor: pointer; }
+      .live-panel__toggle:hover { background: rgba(255, 255, 255, .06); color: var(--lime); }
+      .live-panel__toggle svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+      .live-panel__list { display: flex; min-height: 0; flex: 1; flex-direction: column; margin: 0; padding: 0 10px; list-style: none; }
+      .live-entry { display: flex; min-height: 0; flex: 1; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1px solid rgba(220, 230, 207, .08); }
+      .live-entry:last-child { border-bottom: 0; }
+      .live-entry:first-child { animation: entry-in 420ms cubic-bezier(.2, .8, .2, 1) both; }
+      .live-entry__identity, .live-entry__result { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
+      .live-entry__network { overflow: hidden; color: #c3cabb; font-size: 8px; font-weight: 650; letter-spacing: .07em; text-overflow: ellipsis; white-space: nowrap; }
+      .live-entry__network > span { color: #778172; font-weight: 500; }
+      .live-entry__time { color: #858e81; font-size: 8px; }
+      .live-entry__result { align-items: flex-end; flex: 0 0 auto; }
+      .live-entry__amount { color: #e1e7d9; font-size: 11px; font-weight: 550; letter-spacing: -.015em; }
+      .live-entry__status { font-size: 7px; font-weight: 740; letter-spacing: .13em; text-transform: uppercase; }
+      .live-entry__status--success { color: #bce57e; }
+      .live-entry__status--failed { color: #ee8b7a; }
+      .live-panel__footer { display: flex; min-height: 39px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; padding: 5px 10px; border-top: 1px solid rgba(220, 230, 207, .08); color: #879080; font-size: 7px; font-weight: 600; letter-spacing: .12em; }
+      .live-panel--collapsed { height: auto; }
+      .live-panel--collapsed .live-panel__heading { border-bottom: 0; }
+
+      @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes panel-arrive { from { opacity: 0; transform: translateY(calc(-50% + 12px)) scale(.98); } to { opacity: 1; transform: translateY(-50%) scale(1); } }
+      @keyframes entry-in { from { opacity: .25; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes live-pulse { 0%, 100% { box-shadow: 0 0 4px rgba(201, 242, 124, .34); } 50% { box-shadow: 0 0 12px rgba(201, 242, 124, .86); } }
+      @keyframes glimmer { from { opacity: .45; transform: scale(.82); } to { opacity: 1; transform: scale(1.12); } }
+      @keyframes slow-orbit { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+      @media (max-width: 1080px) {
+        .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 25px 17px; }
+        .card-serial { font-size: clamp(6px, .85vw, 8px); }
+        .card-front-brand { font-size: clamp(6px, .75vw, 8px); }
+        .card-front-edition { font-size: clamp(5px, .63vw, 7px); }
+        .network-logo--mastercard { font-size: 7px; }
+        .network-logo--amex { font-size: 6px; }
+        .network-logo--unionpay { font-size: 8px; }
+      }
+      @media (max-width: 740px) {
+        .site-header { grid-template-columns: 1fr auto; height: 68px; padding: 0 22px; }
+        .header-link { justify-self: end; }
+        .header-note { display: none; }
+        .hero { min-height: 375px; padding: 75px 24px 62px; }
+        .hero-orb--large { top: 72px; right: -95px; width: 260px; opacity: .7; }
+        .hero-orb--small { top: 93px; right: 122px; width: 6px; height: 6px; }
+        .hero-kicker { margin: 0 0 25px 2px; font-size: 8px; }
+        .hero-title { font-size: clamp(50px, 12.7vw, 90px); }
+        .hero-bottom { align-items: flex-start; flex-direction: column; gap: 15px; margin-top: 27px; padding-left: 2px; }
+        .hero-bottom p { max-width: 370px; font-size: 12px; }
+        .hero-cta { padding: 4px 0; font-size: 10px; }
+        .hero-index { right: 24px; bottom: 20px; font-size: 7px; }
+        .gallery { padding: 0 22px; }
+        .network-nav { min-height: 59px; gap: 20px; }
+        .network-nav__label { display: none; }
+        .network-nav a { gap: 6px; font-size: 9px; }
+        .network-section { padding: 67px 0 72px; }
+        .section-heading { margin-bottom: 25px; }
+        .section-heading h2 { font-size: clamp(32px, 6.7vw, 42px); }
+        .section-heading p { max-width: 290px; font-size: 11px; }
+        .section-count { gap: 5px; margin-bottom: 4px; font-size: 8px; }
+        .section-count strong { font-size: 17px; }
+        .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 23px 13px; }
+        .payment-card, .payment-card__inner, .payment-card__face { border-radius: 11px; }
+        .card-face-top, .card-chip-row, .card-face-bottom { padding-right: 10px; padding-left: 10px; }
+        .card-face-top { top: 10%; }
+        .card-serial { font-size: 6px; letter-spacing: .08em; }
+        .network-logo--visa { font-size: clamp(15px, 5vw, 20px); }
+        .network-logo--mastercard { gap: 3px; font-size: 6px; }
+        .mastercard-mark { width: 25px; height: 15px; }
+        .mastercard-mark i { width: 15px; height: 15px; }
+        .network-logo--amex { padding: 3px 4px 2px; font-size: 5px; }
+        .network-logo--unionpay { gap: 3px; font-size: 7px; }
+        .unionpay-mark { height: 11px; }
+        .unionpay-mark i { width: 3px; }
+        .card-chip-row { top: 42%; gap: 6px; }
+        .card-chip { width: clamp(25px, 8vw, 32px); }
+        .contactless-icon { width: 14px; height: 14px; }
+        .card-face-bottom { bottom: 10%; }
+        .card-front-brand { font-size: 5px; letter-spacing: .09em; }
+        .card-front-edition { font-size: 4px; letter-spacing: .06em; }
+        .card-back-top { font-size: 6px; }
+        .card-back-bottom { font-size: 5px; }
+        .card-signature { font-size: 5px; }
+        .sample-caption { padding-top: 8px; }
+        .tap-label { gap: 3px; font-size: 8px; }
+        .tap-label svg { width: 12px; height: 12px; }
+        .sample-number { font-size: 6px; }
+        .sample-payment { margin-top: 5px; padding-top: 6px; }
+        .sample-payment > span { font-size: 7px; }
+        .sample-payment strong { font-size: clamp(10px, 3.1vw, 13px); }
+        .site-footer { align-items: flex-start; flex-wrap: wrap; gap: 17px 20px; padding: 24px 22px 124px; }
+        .site-footer p { order: 3; width: 100%; max-width: 340px; text-align: left; }
+        .back-to-top { margin-left: auto; }
+        .live-panel { right: 12px; width: min(2.1in, calc(100vw - 24px)); height: min(4in, calc(100svh - 24px)); border-radius: 12px; }
+        .live-panel__heading { min-height: 42px; gap: 7px; padding: 0 10px; }
+        .live-entry { gap: 6px; }
+      }
+      @media (max-width: 380px) {
+        .site-header { padding: 0 17px; }
+        .hero { padding-right: 18px; padding-left: 18px; }
+        .hero-title { font-size: clamp(45px, 12.5vw, 52px); }
+        .gallery { padding: 0 17px; }
+        .card-grid { gap: 21px 10px; }
+        .section-heading p { max-width: 220px; }
+        .site-footer { padding-right: 17px; padding-left: 17px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="site-header">
+        <a class="brand-lockup" href="#top" aria-label="Soft Swipe home">
+          <span class="brand-symbol" aria-hidden="true"><i></i><i></i></span>
+          <span>SOFT<span class="brand-slash">/</span>SWIPE</span>
+        </a>
+        <a class="header-link" href="#gallery">THE CARD INDEX
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+        <span class="header-note"><span></span> CARD CULTURE / LIVE</span>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-orb hero-orb--large" aria-hidden="true"></div>
+          <div class="hero-orb hero-orb--small" aria-hidden="true"></div>
+          <p class="hero-kicker"><span></span> A LITTLE PAYMENT PLAYGROUND</p>
+          <h1 class="hero-title" id="hero-title"><span>SOFT</span><span class="hero-title__slash">/</span><span>SWIPE</span></h1>
+          <div class="hero-bottom">
+            <p>Explore a collection of distinctive card designs and follow a live stream of dollar transactions.</p>
+            <a class="hero-cta" href="#gallery">Explore the deck
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </a>
+          </div>
+          <span class="hero-index" aria-hidden="true">VOL. 01 &nbsp; / &nbsp; CARD INDEX</span>
+        </section>
+
+        <section class="gallery" id="gallery" aria-label="Card gallery">
+          <nav class="network-nav" aria-label="Jump to a card network">
+            <span class="network-nav__label">BROWSE NETWORKS</span>
+            <a href="#visa"><span>01</span>Visa</a>
+            <a href="#mastercard"><span>02</span>Mastercard</a>
+            <a href="#amex"><span>03</span>American Express</a>
+            <a href="#unionpay"><span>04</span>UnionPay</a>
+          </nav>
+          <div id="card-sections"></div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <a class="brand-lockup brand-lockup--footer" href="#top">
+          <span class="brand-symbol" aria-hidden="true"><i></i><i></i></span>
+          <span>SOFT<span class="brand-slash">/</span>SWIPE</span>
+        </a>
+        <p>A curated collection of card designs and an ever-changing stream of dollar transactions.</p>
+        <a class="back-to-top" href="#top">BACK TO TOP
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+      </footer>
+
+      <aside class="live-panel" id="live-panel" aria-label="Live transactions">
+        <div class="live-panel__heading">
+          <span class="live-indicator" aria-hidden="true"></span>
+          <span class="live-panel__title">LIVE ACTIVITY</span>
+          <span class="live-panel__tag">LIVE</span>
+          <button class="live-panel__toggle" id="feed-toggle" type="button" aria-label="Collapse transaction feed" aria-expanded="true">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 9.5 4-4 4 4" /></svg>
+          </button>
+        </div>
+        <ul class="live-panel__list" id="transaction-list" aria-live="polite"></ul>
+        <div class="live-panel__footer"><span>RECENT ACTIVITY</span><span>UPDATING LIVE</span></div>
+      </aside>
+    </div>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const networks = [
+          { id: "visa", name: "Visa", count: 36, description: "A familiar everyday essential, with a little extra character." },
+          { id: "mastercard", name: "Mastercard", count: 30, description: "Two familiar circles, reimagined with a bold new look." },
+          { id: "amex", name: "American Express", count: 28, description: "A crisp blue collection for statement-making moments." },
+          { id: "unionpay", name: "UnionPay", count: 28, description: "A bright, global-inspired run of card designs." },
+        ];
+        const amounts = [50000, 100000, 1280, 4580, 8750, 12480, 26750, 39200, 64800, 91250, 3750, 18400, 72900, 50250, 9850, 43700, 11600, 80100, 23950, 56400, 31500, 6890, 77300, 9420, 33900, 60100, 14900];
+        const sectionRoot = document.getElementById("card-sections");
+        const transactionList = document.getElementById("transaction-list");
+        const livePanel = document.getElementById("live-panel");
+        const feedToggle = document.getElementById("feed-toggle");
+
+        const randomAmount = () => amounts[Math.floor(Math.random() * amounts.length)];
+        const money = (amount) => `$${amount.toLocaleString("en-US")}`;
+        const padded = (number) => String(number).padStart(2, "0");
+
+        function networkLogo(id) {
+          if (id === "visa") return '<span class="network-logo network-logo--visa">VISA</span>';
+          if (id === "mastercard") return '<span class="network-logo network-logo--mastercard"><span class="mastercard-mark" aria-hidden="true"><i></i><i></i></span><span>mastercard</span></span>';
+          if (id === "amex") return '<span class="network-logo network-logo--amex"><span>AMERICAN</span><span>EXPRESS</span></span>';
+          return '<span class="network-logo network-logo--unionpay"><span class="unionpay-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>UnionPay</span></span>';
+        }
+
+        function chipIcon() {
+          return '<svg class="card-chip" viewBox="0 0 42 32" fill="none" aria-hidden="true"><rect x="1" y="1" width="40" height="30" rx="7" fill="#D3B87E"/><path d="M14 2v28M28 2v28M2 11h12m-12 9h12m14-9h12m-12 9h12M14 11h14v9H14z" stroke="rgba(24,31,26,.38)" stroke-width="1.2"/></svg>';
+        }
+
+        function contactlessIcon() {
+          return '<svg class="contactless-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8a6 6 0 0 1 0 8M12 5a10 10 0 0 1 0 14M16 2a14 14 0 0 1 0 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+        }
+
+        function cardMarkup(card, network) {
+          const sample = padded(card.number);
+          return `<article class="sample-item">
+            <button type="button" class="payment-card payment-card--${network.id}" data-variant="${card.number % 3}" data-card-toggle aria-pressed="false" aria-label="Flip ${network.name} card ${sample}">
+              <span class="payment-card__inner">
+                <span class="payment-card__face payment-card__front">
+                  <span class="card-orbit card-orbit--one" aria-hidden="true"></span><span class="card-orbit card-orbit--two" aria-hidden="true"></span>
+                  <span class="card-face-top"><span class="card-serial">SOFT / SWIPE &nbsp; / &nbsp; ${sample}</span>${networkLogo(network.id)}</span>
+                  <span class="card-chip-row">${chipIcon()}${contactlessIcon()}</span>
+                  <span class="card-face-bottom"><span class="card-front-brand">SOFT / SWIPE</span><span class="card-front-edition">CARD COLLECTION</span></span>
+                </span>
+                <span class="payment-card__face payment-card__back">
+                  <span class="card-back-top">CARD MEMBER / ${sample}</span><span class="card-magnetic-stripe"></span>
+                  <span class="card-signature-row"><span class="card-signature">CARDHOLDER SIGNATURE</span><span class="card-signature-tag">S / S</span></span>
+                  <span class="card-back-bottom">SOFT / SWIPE MEMBER EDITION</span>
+                </span>
+              </span>
+            </button>
+            <div class="sample-caption">
+              <div class="sample-caption__top"><span class="tap-label"><svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M7 8V4.8a1.15 1.15 0 0 1 2.3 0v2.5-1a1.15 1.15 0 0 1 2.3 0v1-0.3a1.15 1.15 0 0 1 2.3 0v1a1.15 1.15 0 0 1 2.3 0v3.1c0 3.1-1.9 5.1-4.7 5.1h-1.1c-1.5 0-2.5-.5-3.5-1.7L5 11.4a1.4 1.4 0 0 1 2-2L9 11" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>Tap to flip</span><span class="sample-number">SAMPLE ${sample}</span></div>
+              <div class="sample-payment"><span>Card payment</span><strong>${money(card.amount)}</strong></div>
+            </div>
+          </article>`;
+        }
+
+        function renderSections() {
+          sectionRoot.innerHTML = networks.map((network, index) => {
+            const cards = Array.from({ length: network.count }, (_, cardIndex) => ({ number: cardIndex + 1, amount: randomAmount() }));
+            return `<section class="network-section network-section--${network.id}" id="${network.id}">
+              <div class="section-heading"><div class="section-heading__main">
+                <span class="section-index">0${index + 1} / 04 &nbsp; - &nbsp; CARD COLLECTION</span>
+                <h2>${network.name}</h2><p>${network.description}</p>
+              </div><span class="section-count"><strong>${network.count}</strong><span>cards</span></span></div>
+              <div class="card-grid">${cards.map((card) => cardMarkup(card, network)).join("")}</div>
+            </section>`;
+          }).join("");
+        }
+
+        function makeTransaction(status) {
+          const network = networks[Math.floor(Math.random() * networks.length)];
+          return {
+            network,
+            sample: Math.floor(Math.random() * network.count) + 1,
+            amount: randomAmount(),
+            status: status || (Math.random() > .3 ? "success" : "failed"),
+            createdAt: Date.now(),
+          };
+        }
+
+        function timeAgo(timestamp) {
+          const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+          if (seconds < 2) return "just now";
+          if (seconds < 60) return `${seconds}s ago`;
+          return `${Math.floor(seconds / 60)}m ago`;
+        }
+
+        let transactions = [makeTransaction("success"), makeTransaction("failed"), makeTransaction(), makeTransaction()];
+
+        function renderTransactions() {
+          transactionList.innerHTML = transactions.map((transaction) => {
+            const networkName = transaction.network.id === "amex" ? "AMEX" : transaction.network.name.toUpperCase();
+            return `<li class="live-entry"><span class="live-entry__identity">
+              <span class="live-entry__network">${networkName}<span> / ${padded(transaction.sample)}</span></span>
+              <time class="live-entry__time" data-timestamp="${transaction.createdAt}">${timeAgo(transaction.createdAt)}</time>
+            </span><span class="live-entry__result"><span class="live-entry__amount">${money(transaction.amount)}</span>
+              <span class="live-entry__status live-entry__status--${transaction.status}">${transaction.status}</span>
+            </span></li>`;
+          }).join("");
+        }
+
+        renderSections();
+        renderTransactions();
+
+        sectionRoot.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-card-toggle]");
+          if (!button) return;
+          const flipped = button.classList.toggle("is-flipped");
+          button.setAttribute("aria-pressed", String(flipped));
+          const networkName = networks.find((network) => button.classList.contains(`payment-card--${network.id}`)).name;
+          const cardNumber = button.querySelector(".card-serial").textContent.split("/").pop().trim();
+          button.setAttribute("aria-label", `${flipped ? "Show front of" : "Flip"} ${networkName} card ${cardNumber}`);
+        });
+
+        feedToggle.addEventListener("click", () => {
+          const collapsed = livePanel.classList.toggle("live-panel--collapsed");
+          feedToggle.setAttribute("aria-expanded", String(!collapsed));
+          feedToggle.setAttribute("aria-label", collapsed ? "Expand transaction feed" : "Collapse transaction feed");
+          feedToggle.innerHTML = collapsed
+            ? '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6.5 8 10l4-3.5"/></svg>'
+            : '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 9.5 4-4 4 4"/></svg>';
+        });
+
+        window.setInterval(() => {
+          transactions = [makeTransaction(), ...transactions].slice(0, 4);
+          renderTransactions();
+        }, 2400);
+
+        window.setInterval(() => {
+          transactionList.querySelectorAll("[data-timestamp]").forEach((time) => {
+            time.textContent = timeAgo(Number(time.dataset.timestamp));
+          });
+        }, 1000);
+      })();
+    </script>
+  </body>
+</html>
